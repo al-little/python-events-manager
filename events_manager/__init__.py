@@ -28,6 +28,7 @@ ListenersType = Dict[
 
 _listeners: ListenersType = {}
 _background_tasks = set()
+_logger = logging.getLogger(__name__)
 
 
 class ListenerAlreadyExistsError(ValueError):
@@ -35,7 +36,7 @@ class ListenerAlreadyExistsError(ValueError):
 
 
 def listen(event_type: Type[Event], listener: ListenerType, check_if_exists: bool = False, *args, **kwargs) -> None:
-    logging.debug(f'{listener} listening {event_type}')
+    _logger.debug(f'{listener} listening {event_type}')
 
     listeners = _listeners.get(event_type) or []
 
@@ -72,7 +73,7 @@ def on(event_type: Type[Event], *args, **kwargs):
 
 
 def emit(e: Event) -> None:
-    logging.debug(f'emitting {e.__class__}: {e}')
+    _logger.debug(f'emitting {e.__class__}: {e}')
 
     task = create_task(_run_listeners(e))
     _background_tasks.add(task)
@@ -107,4 +108,4 @@ async def _run_listener(e: Event, listener: ListenerType, *args, **kwargs) -> No
         pass
 
     except Exception:
-        logging.exception(f'Exception in {listener.__name__} for {e.__class__}!')
+        _logger.exception(f'Exception in {listener.__name__} for {e.__class__}!')
